@@ -5,7 +5,8 @@ import random from 'random';
  * 
  */
 export class Model {
-  constructor(mu_v, sigma_v, sigma_u, update_rate, use_hebbian, noisy) {
+  constructor(mu_v=3, sigma_v=1, sigma_u=1, update_rate=0.01, 
+    learn_rate=0.01, use_hebbian=false, noisy=false, maxt=5) {
     // functions
     // the top-down generative function
     this.g = function(v) {
@@ -28,23 +29,30 @@ export class Model {
     this.eps_v = 0
     this.e_u = 0 // auxiliary node used to update sigma_u, eq #68
 
+    // initial
+    this.phi_initial = 0
+
     // model behavior
+    this.maxt = maxt
     this.update_rate = update_rate
-    this.learn_rate = 0.0001
+    this.learn_rate = learn_rate 
     this.hebbian = use_hebbian
     this.noisy_observation = noisy
 
     // introspection
-    this.hparams = [ 'update_rate', 'learn_rate', 'hebbian', 'noisy_observation' ]
+    this.hparams = [ 'update_rate', 'learn_rate', 'hebbian', 'noisy_observation', 'maxt' ]
     this.params = [ 'mu_v', 'sigma_v', 'sigma_u' ]
     this.states = [ 'phi', 'eps_u', 'eps_v', 'e_u' ]
     this.schema = {
-      mu_v: { min: 0, max: 5, type: 'float', logscale: true },
-      sigma_v: { min: 0.1, max: 3.0, type: 'float', logscale: false },
-      sigma_u: { min: 0.1, max: 3.0, type: 'float', logscale: false },
+      mu_v: { min: 0, max: 5, type: 'float', logscale: false },
+      sigma_v: { min: 0.1, max: 3.0, type: 'float', logscale: true },
+      sigma_u: { min: 0.1, max: 3.0, type: 'float', logscale: true },
       update_rate: { min: 0.001, max: 0.1, type: 'float', logscale: true },
+      learn_rate: { min: 0.001, max: 0.1, type: 'float', logscale: true },
       hebbian: { type: 'bool' },
-      noisy_observation: { type: 'bool' }
+      noisy_observation: { type: 'bool' },
+      maxt: { min: 0, max: 100, type: 'float', logscale: false },
+      phi_initial: { min: 0, max: 5, type: 'float', logscale: false }
     }
       
   }
@@ -70,7 +78,7 @@ export class Model {
 
   reset_activation_state() {
     this.time = 0
-    this.phi = 0
+    this.phi = this.phi_initial
     this.eps_u = 0
     this.eps_v = 0
     this.e_u = 0
@@ -142,7 +150,7 @@ export class Model {
   }
 
   get_all_params() {
-    let all_pars = this.params.concat(this.hparams)
+    let all_pars = Object.keys(this.schema)
     return all_pars.map(name => { 
       return { id: name, val: this[name], ...this.schema[name] } })
   }
@@ -164,8 +172,12 @@ export class Model {
     })
   }
 
-  run(duration, v_sim) {
-    let steps = duration / this.update_rate
+  run(v_sim) {
+    let steps = Math.floor(this.maxt / this.update_rate)
+    if (steps > 30000)
+      throw `steps = ${steps} exceeded maximum`
+    // console.log(`run(${v_sim}) with ${steps} steps`)
+    
     let states = this.get_state_inventory()
     const stride = states.length
     let data = new Float32Array(steps * stride)
@@ -182,6 +194,8 @@ export class Model {
       for (let i = 0; i != state.length; i++) 
         data[off+i] = state[i]
     }
+
+    // console.log(`finished`)
     return { 'time': time, 'data': data, 'states': states }
   }
 

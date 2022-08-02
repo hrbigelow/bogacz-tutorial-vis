@@ -4,15 +4,18 @@ import * as d3 from 'd3';
 export class Plot {
   // produce a curve from a model
   constructor() {
-    this.maxt = 30 
-    this.model = new Model(3, 1, 1, 0.01, false, false)
-    this.v_sim = 3
+    this.model = new Model()
+    this.v_sim = 2
   }
 
+  // call after update 
   resize_viewport(width, height) {
-    this.xtransform = d3.scaleLinear().domain([0, this.maxt]).range([0, width])
+    this.xtransform = d3.scaleLinear().domain([0, this.model.maxt]).range([0, width])
     let [y_min, y_max] = this.get_y_bounds()
-    this.ytransform = d3.scaleLinear().domain([y_min, y_max]).range([0, height])
+    let margin = (y_max - y_min) * 0.05
+    this.ytransform = d3.scaleLinear()
+      .domain([y_max + margin, y_min - margin])
+      .range([0, height])
   }
 
   get_params() {
@@ -36,8 +39,9 @@ export class Plot {
 
   // update the model state (or reinstantiate the model)
   update() {
+    // console.log('in update')
     this.model.reset_activation_state()
-    this.run = this.model.run(this.maxt, this.v_sim)
+    this.run = this.model.run(this.v_sim)
     this.stride = this.run.states.length
   }
 
