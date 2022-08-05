@@ -64,7 +64,8 @@
                      on:input={(evt) => h(evt, true)}
                      min={Math.log10(obj.min)}
                      max={Math.log10(obj.max)} 
-                     step={(Math.log10(obj.max) - Math.log10(obj.min)) / 100}>
+                     step={(Math.log10(obj.max) - Math.log10(obj.min)) / 1000}
+                     value={Math.log10(obj.val)}>
                      <div class='ib'>{numberDisplay(obj.val, 3)}</div>
             </label>
           {:else}
@@ -74,7 +75,8 @@
                      on:input={h}
                      min={obj.min}
                      max={obj.max} 
-                     step={(obj.max - obj.min) / 100}>
+                     step={(obj.max - obj.min) / 1000}
+                     value={obj.val}>
               <div class='ib'>{numberDisplay(obj.val)}</div>
             </label>
           {/if}

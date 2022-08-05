@@ -6,7 +6,8 @@ import random from 'random';
  */
 export class Model {
   constructor(mu_v=3, sigma_v=1, sigma_u=1, update_rate=0.01, 
-    learn_rate=0.01, use_hebbian=false, noisy=false, maxt=5) {
+    learn_rate=0.01, use_hebbian=false, noisy=false, maxt=5,
+    phi_initial=3) {
     // functions
     // the top-down generative function
     this.g = function(v) {
@@ -30,7 +31,7 @@ export class Model {
     this.e_u = 0 // auxiliary node used to update sigma_u, eq #68
 
     // initial
-    this.phi_initial = 0
+    this.phi_initial = phi_initial
 
     // model behavior
     this.maxt = maxt
